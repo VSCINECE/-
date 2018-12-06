@@ -58,7 +58,294 @@ void menu(){
   } while (u8g.nextPage());  
   if(irrecv.decode(&results))
   { if(results.value==0x1FEA05F&&speed<10)//上
+    {#include <U8glib.h>
+#include <IRremote.h>
+#define INTERVAL_LCD    20             //定义OLED刷新时间间隔  
+unsigned long lcd_time = millis();                 //OLED刷新时间计时器
+U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);     //设置OLED型号
+
+
+#define RECV_PIN 10
+#define UP 0x1FEA05F  
+#define DOWN 0x1FED827
+#define LEFT 0x1FEE01F
+#define RIGHT 0x1FE906F
+#define OK 0x1FE10EF
+#define BACK 0x1FE50AF
+#define r 0
+#define u 1
+#define l 2
+#define d 3
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+
+struct SNAKE {
+  int x[200];
+  int y[200];
+  int node;
+  int dir;
+};
+
+int score = 0;
+int Bestscore = 0;
+int level = 1;
+int gamespeed = 120;
+int i;
+int judx;
+int judy;
+int judx1;
+int judy1;
+int out=0;
+int speed=5;
+int LevelPlusJudge=0;
+int OppositeMoveJudge=0;
+SNAKE snake = {{1,5,9}, {30,30,30}, 3, r};
+void menu(){
+  while(1)
+  {
+ Bestscore=Bestscore>score?Bestscore:score;
+ u8g.firstPage();
+  do
+  {
+    u8g.setFont(u8g_font_9x15);
+    u8g.setPrintPos(0, 20);
+    u8g.print("    SNAKE");
+    u8g.setFont(u8g_font_fixed_v0r);
+    u8g.setPrintPos(0, 30);
+    u8g.print("                  beta");
+    u8g.setPrintPos(0, 50);
+    u8g.print("           speed:");
+    u8g.print(speed);
+    u8g.setPrintPos(0, 60);
+    u8g.print("     mcookie version");
+    u8g.setFont(u8g_font_fixed_v0r);
+      u8g.setPrintPos(0,40);
+      u8g.print("    Your best score:");
+      u8g.print(Bestscore);
+      
+  } while (u8g.nextPage());  
+  if(irrecv.decode(&results))
+  { 
+    if(results.value==0x1FEA05F&&speed<10)//上
     {
+      gamespeed-=20;
+      speed+=1;
+    }
+    if(results.value==0x1FED827&&speed>1&&speed<=10)//下
+    {
+      gamespeed+=20;
+      speed-=1;
+    }
+    if(results.value==0x1FE10EF)//ok
+    {
+    score=0;
+    break;
+    }
+  }
+  irrecv.resume();
+  }
+      }
+//游戏结束界面
+void over(){
+  u8g.firstPage();
+  do
+  {
+    u8g.setFont(u8g_font_9x15);
+    u8g.setPrintPos(0, 20);
+    u8g.print("  GAME OVER!");
+    u8g.setFont(u8g_font_fixed_v0r);
+    u8g.setPrintPos(0, 35);
+    u8g.print("     Your Score:");
+    u8g.print(score);
+    u8g.setPrintPos(0,55);
+    u8g.print("       Try Again?");
+  } while (u8g.nextPage()); 
+}
+
+//组成单位，4X4像素点的方块。
+const uint8_t ele[] PROGMEM = {
+  0xf0, //B1111000
+  0xb0, //B1011000
+  0xd0, //B1101000
+  0xf0, //B1111000
+};
+
+void element(int x, int y) {
+  u8g.drawBitmapP(x,y, 1,4, ele);
+}
+//食物坐标
+struct FOOD {
+  int x;
+  int y;
+};
+FOOD food = {25, 30};
+void UI() {
+  u8g.drawFrame(0,1, 102,62);   //内边界
+  u8g.drawFrame(0,0, 102,64);   //外边界
+  u8g.setFont(u8g_font_5x7);    //设置字体
+  u8g.drawStr(104,12, "LEVEL"); //等级提示
+  u8g.drawStr(104,40, "SCORE"); //分数提示
+}
+void printScore(int x, int y, int s) {
+  u8g.setFont(u8g_font_6x10);
+  u8g.setPrintPos(x, y);
+  u8g.print(s);
+}
+//接收红外遥控
+void key() {
+  if (irrecv.decode(&results))
+  {
+     switch (results.value)
+    {
+      case UP:
+        snake.dir = u;
+        break;
+      case DOWN:
+        snake.dir = d;
+        break;
+      case LEFT:
+        snake.dir = l;
+        break;
+      case RIGHT:
+        snake.dir = r;
+        break;
+      case BACK://返回
+        out=1;
+        break;
+        default:
+        break;
+    }
+    irrecv.resume();
+}
+}
+
+//食物随机生成函数
+void ran()
+{
+  int flag = 1;
+  while (flag)
+  {
+    food.x = 4*random(0,25)+1;
+    food.y = 4*random(0,12)+2;//食物与框内随机生成
+    for (int i = 0; i < snake.node; i++)
+    {
+        if((food.x==snake.x[i])&&(food.y==snake.y[i]))
+        {
+          break;//防止食物坐标出现于蛇身上
+        }
+        flag=0;
+    }
+  }
+}
+
+void snakeGame() {
+//方向设定
+  switch(snake.dir) {
+    case r: 
+          snake.x[0] += 4;
+          if(snake.x[0]>=101) {
+            snake.x[0] = 1;
+          } break;
+    case u: 
+          snake.y[0] -= 4;
+          if(snake.y[0]<=1) {
+            snake.y[0] = 58;
+          } break;
+    case l: 
+          snake.x[0] -= 4;
+          if(snake.x[0]<=0) {
+            snake.x[0] = 97;
+          } break;
+    case d:
+          snake.y[0] += 4;
+          if(snake.y[0]>=62) {
+            snake.y[0] = 2;
+          } break;
+  }  
+  judx=snake.x[0]-food.x;
+  judx1=abs(judx);
+  judy=snake.y[0]-food.y;
+  judy1=abs(judy);
+ if (judy1<3&&judx1<3)
+ {
+    snake.x[0] = food.x;
+    snake.y[0] = food.y;
+    snake.node++;
+    score += 2;
+    level = score/16+1;
+    LevelPlusJudge++;
+    if(LevelPlusJudge==16)
+    {
+      LevelPlusJudge-=16;
+    if(gamespeed>=60)
+      gamespeed-=40;
+    else
+      gamespeed=20;
+    }
+    ran();
+  }
+    
+  for(i=snake.node-1;i>0;i--) {
+    snake.x[i] = snake.x[i-1];
+    snake.y[i] = snake.y[i-1];
+  }
+   for(int i=4;i<snake.node;i++)
+  {
+    if((snake.x[0]==snake.x[i])&&(snake.y[0]==snake.y[i]))
+    {
+      while(1)
+      {
+      over();
+      delay(1000);
+      if(irrecv.decode(&results))
+      {break;
+      }
+      }
+      out=1;
+      break;
+      }
+  }
+  }
+
+void setup() 
+{ irrecv.enableIRIn();
+while(1)
+{
+ menu();
+ while(1)
+  { 
+  u8g.firstPage();
+  do {
+    UI();
+  for(i=0; i<snake.node;i++) 
+  {
+    element(snake.x[i], snake.y[i]);
+  }
+    element(food.x, food.y);
+    printScore(109, 22, level);
+    printScore(109, 50, score);
+  }while(u8g.nextPage());
+  key();
+    if(OppositeMoveJudge==r&&snake.dir==l)//防止反向移动BUG
+  snake.dir=r;
+    if(OppositeMoveJudge==l&&snake.dir==r)
+  snake.dir=l;
+    if(OppositeMoveJudge==d&&snake.dir==u)
+  snake.dir=d;
+    if(OppositeMoveJudge==u&&snake.dir==d)
+  snake.dir=u;
+  snakeGame(); 
+  if(out==1)
+  {
+  break;
+  }
+  OppositeMoveJudge=snake.dir;
+  delay(gamespeed);
+  }
+  snake = {{1,5,9}, {30,30,30}, 3, r};
+  out=0;
+}
+}
       gamespeed-=20;
       speed+=1;
     }
