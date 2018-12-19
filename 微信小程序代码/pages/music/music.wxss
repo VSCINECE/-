@@ -1,0 +1,29 @@
+.container1{
+  background-color:yellow;
+  height:100vh;
+  margin-left: 255rpx;
+  text-align:center;
+ }
+navigator{
+  display:inline;
+}
+.nav-hover{
+  color:red;
+}
+.box{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.musicbg{
+  margin-top: 80rpx;  
+  height:60vh;
+  width:75vh;
+}
+.button{
+  margin-top:120rpx;
+}
+.Background{
+ background-color:gainsboro;
+}

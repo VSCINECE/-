@@ -1,0 +1,11 @@
+<!--index.wxml-->
+<view class='container'>
+  <image class='index-banner' src="/static/images/wendu.jpg"></image>
+  <text  class="info">亲所在环境当前的<text class="nav-hover">温度</text>是:</text>
+  <view class="border">{{temp1}}  ℃</view>
+  <text  class="info" >您周围的<text class="nav-hover">湿度</text>是:</text>
+  <view class="border" >{{temp2}} %RH</view>
+   <view>
+     <text>来</text> <navigator style="display: inline; " url='/pages/music/music' open-type="switchTab" hover-class='nav-hover' class='nav-default'> 听歌  </navigator><text>放松一下吧！</text>
+   </view>
+</view>

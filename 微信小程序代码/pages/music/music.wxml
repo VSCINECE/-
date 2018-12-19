@@ -1,0 +1,12 @@
+<view class="Background">
+   <text class='container1'>LightMusic</text>
+   
+<audio poster="{{poster}}" name="{{name}}" author="{{author}}" src="{{src1}}" id="myAudio" controls="false" loop="false"></audio>
+<view class="box,button" >
+<button type="primary" bindtap="audioPlay">Play</button>
+<button type="primary" bindtap="audioPause">Pause</button>
+<button type="primary" bindtap="audio60">Skip to 60s</button>
+<button type="primary" bindtap="audioStop">Stop</button>  
+ <image class="musicbg" src="/static/images/BK.jpg"></image> 
+</view>
+</view>

@@ -1,0 +1,33 @@
+.info{
+font-weight:bold;
+font-size:50rpx;
+
+}
+.container{
+  background-color:azure;
+  height:100vh;
+
+  display:flex;
+  flex-direction:column;
+justify-content:space-around;  
+align-items:center;
+}
+.index-banner{
+  width:375rpx;
+  height:375rpx;
+  border-radius:50%;
+}
+.nav-default{
+  color:blue;
+}
+.nav-hover{
+  color:red;
+}
+.border{
+ border-top-style:double;
+ border-bottom-style:double;
+ border-left-style:inset;
+  border-right-style:inset;
+ border-width: 3px;
+ border-color:dodgerblue
+}
